@@ -7,54 +7,80 @@ import de.voidplus.leapmotion.*;
 
 OpenCV ocvL, ocvR;
 LeapMotion leap;
-PImage imgL, imgR, depth1, depth2;
+PGraphics imgL, imgR; 
+PImage depth;
+
+boolean doGrayscale = true;
+boolean doInvert = true;
+boolean doBlur = true;
+boolean doStereoBM = false;
+int blurType = 3; // 1 simple, 2 gaussian, 3 median, 4 bilateral
+int blurParam = 33; // radius, should be odd
+int depthScale = 1;
+
+StereoSGBM stereoSGBM;
+StereoBM stereoBM;
+Mat left, right, disparity, depthMat;
+int depthW = 640;
+int depthH = 240;
 
 void setup() {
-  size(640, 240, P2D);
-  leap = new LeapMotion(this);
+  size(50, 50, P2D);
+  surface.setSize(depthW*2, depthH*2);
+  frameRate(120);
+  
+  leap = new LeapMotion(this);    
+  imgL = createGraphics(int(depthW/depthScale), int(depthH/depthScale), P2D);
+  imgR = createGraphics(int(depthW/depthScale), int(depthH/depthScale), P2D);
+  depth = createImage(int(depthW/depthScale), int(depthH/depthScale), RGB);
+  
+  ocvL = new OpenCV(this, imgL);
+  ocvR = new OpenCV(this, imgR);
+  
+  stereoSGBM =  new StereoSGBM(0, 32, 3, 128, 256, 20, 16, 1, 100, 20, true);
+  stereoBM = new StereoBM();
 }
 
 void draw() {
   if (leap.hasImages()) {
     for (Image camera : leap.getImages()) {
-      println(camera.getWidth() + " " + camera.getHeight());
       if (camera.isLeft()) {
-        imgL = camera; // Left camera
+        imgL.beginDraw();
+        imgL.image(camera, 0, 0, imgL.width, imgL.height);
+        imgL.endDraw();
+        ocvL.loadImage(imgL); // Left camera
+        if (doGrayscale) ocvL.gray();
+        if (doBlur) ocvL.blur(blurType, blurParam);
       } else {
-        imgR = camera; // Right camera
+        imgR.beginDraw();
+        imgR.image(camera, 0, 0, imgR.width, imgR.height);
+        imgR.endDraw();
+        ocvR.loadImage(imgR); // Right camera
+        if (doGrayscale) ocvR.gray();
+        if (doBlur) ocvR.blur(blurType, blurParam);
       }
     }
   }
-  
-  if (imgL != null && imgR != null) {
-    ocvL = new OpenCV(this, imgL);
-    ocvR = new OpenCV(this, imgR);
-    ocvL.gray();
-    ocvR.gray();
-    
-    Mat left = ocvL.getGray();
-    Mat right = ocvR.getGray();
-  
-    Mat disparity = OpenCV.imitate(left);
-  
-    StereoSGBM stereo =  new StereoSGBM(0, 32, 3, 128, 256, 20, 16, 1, 100, 20, true);
-    stereo.compute(left, right, disparity );
-  
-    Mat depthMat = OpenCV.imitate(left);
-    disparity.convertTo(depthMat, depthMat.type());
-  
-    depth1 = createImage(depthMat.width(), depthMat.height(), RGB);
-    ocvL.toPImage(depthMat, depth1);
-  
-    StereoBM stereo2 = new StereoBM();
-    stereo2.compute(left, right, disparity );
-    disparity.convertTo(depthMat, depthMat.type());
-  
-  
-    depth2 = createImage(depthMat.width(), depthMat.height(), RGB);
-    ocvL.toPImage(depthMat, depth2);
-  
-    image(depth1, 0, imgL.height);
-    image(depth2, imgL.width, imgL.height);
+  left = ocvL.getGray();
+  right = ocvR.getGray();
+  disparity = OpenCV.imitate(left);
+
+  if (!doStereoBM) {
+    stereoSGBM.compute(left, right, disparity );
+  } else {
+    stereoBM.compute(left, right, disparity );
   }
+  
+  depthMat = OpenCV.imitate(left);
+  disparity.convertTo(depthMat, depthMat.type());
+  
+  ocvL.toPImage(depthMat, depth);
+  if (doInvert) ocvL.invert();
+  image(depth, 0, 0, width, height);
+  
+  surface.setTitle("" + frameRate);
+}
+
+void keyPressed() {
+  doStereoBM = !doStereoBM;
 }
