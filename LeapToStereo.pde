@@ -10,9 +10,9 @@ LeapMotion leap;
 PGraphics imgL, imgR; 
 PImage depth;
 
-boolean doGrayscale = true;
-boolean doInvert = true;
-boolean doBlur = true;
+boolean doGrayscale = false;
+boolean doInvert = false;
+boolean doBlur = false;
 boolean doStereoBM = false;
 int blurType = 3; // 1 simple, 2 gaussian, 3 median, 4 bilateral
 int blurParam = 33; // radius, should be odd
@@ -26,7 +26,7 @@ int depthH = 240;
 
 void setup() {
   size(50, 50, P2D);
-  surface.setSize(depthW*2, depthH*2);
+  surface.setSize(depthW*2, depthH*4);
   frameRate(120);
   
   leap = new LeapMotion(this);    
@@ -76,7 +76,8 @@ void draw() {
   
   ocvL.toPImage(depthMat, depth);
   if (doInvert) ocvL.invert();
-  image(depth, 0, 0, width, height);
+  image(imgL, 0, 0, width, height/2);
+  image(depth, 0, height/2, width, height);
   
   surface.setTitle("" + frameRate);
 }
