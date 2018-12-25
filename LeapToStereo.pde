@@ -7,15 +7,10 @@ import de.voidplus.leapmotion.*;
 
 OpenCV ocvL, ocvR;
 LeapMotion leap;
-PImage imgL, imgR, depth;
+PGraphics imgL, imgR, imgD;
+PImage depth;
 
-boolean doGrayscale = false;
-boolean doInvert = false;
-boolean doBlur = false;
-boolean doThreshold = false;
 boolean doStereoBM = false;
-int blurType = 3; // 1 simple, 2 gaussian, 3 median, 4 bilateral
-int blurParam = 33; // radius, should be odd
 
 StereoSGBM stereoSGBM;
 StereoBM stereoBM;
@@ -26,12 +21,15 @@ int depthH = 240;
 void setup() {
   size(50, 50, P2D);
   surface.setSize(depthW, depthH*4);
-  
+
   leap = new LeapMotion(this);    
-  imgL = createImage(depthW, depthH, RGB);
-  imgR = createImage(depthW, depthH, RGB);
+  imgL = createGraphics(depthW, depthH, P2D);
+  imgR = createGraphics(depthW, depthH, P2D);
+  imgD = createGraphics(depthW, depthH, P2D);
   depth = createImage(depthW, depthH, RGB);
   
+  setupShaders();
+
   ocvL = new OpenCV(this, imgL);
   ocvR = new OpenCV(this, imgR);
   
@@ -43,16 +41,17 @@ void draw() {
   if (leap.hasImages()) {
     for (Image camera : leap.getImages()) {
       if (camera.isLeft()) {
-        imgL = camera;
+        imgL.beginDraw();
+        shaderSetTexture(shader_thresh, "tex0", camera);
+        imgL.filter(shader_thresh);
+        imgL.endDraw();
         ocvL.loadImage(imgL); // Left camera
-        if (doGrayscale) ocvL.gray();
-        if (doThreshold) ocvL.threshold(127);
-        if (doBlur) ocvL.blur(blurType, blurParam);
       } else {
-        imgR = camera;
+        imgR.beginDraw();
+        shaderSetTexture(shader_thresh, "tex0", camera);
+        imgR.filter(shader_thresh);
+        imgR.endDraw();
         ocvR.loadImage(imgR); // Right camera
-        if (doGrayscale) ocvR.gray();
-        if (doBlur) ocvR.blur(blurType, blurParam);
       }
     }
   }
@@ -70,10 +69,15 @@ void draw() {
   disparity.convertTo(depthMat, depthMat.type());
   
   ocvL.toPImage(depthMat, depth);
-  if (doInvert) ocvL.invert();
   image(imgL, 0, 0, imgL.width, imgL.height*2);
-  image(depth, 0, height/2, depth.width, depth.height*2);
-  if (doThreshold) filter(THRESHOLD, 0.1);
+  
+  imgD.beginDraw();
+  shaderSetTexture(shader_thresh2, "tex0", depth);
+  shaderSetTexture(shader_thresh2, "tex1", imgL);
+  imgD.filter(shader_thresh2);
+  imgD.endDraw();
+  
+  image(imgD, 0, height/2, imgD.width, imgD.height*2);
   
   surface.setTitle("" + frameRate);
 }

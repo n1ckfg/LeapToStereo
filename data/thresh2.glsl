@@ -1,6 +1,7 @@
 uniform vec3 iResolution;
 
 uniform sampler2D tex0;
+uniform sampler2D tex1;
 
 uniform float threshold;
 
@@ -18,7 +19,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 	vec2 uv2 = vec2(uv.x, abs(1.0 - uv.y));
 
 	vec4 col = texture2D(tex0, uv2);
-	vec4 thresh = threshFilter(col.xyz);
+	vec4 thresh = threshFilter(texture2D(tex1, uv).xyz);
 
 	fragColor = col * thresh;
 }

@@ -1,22 +1,22 @@
-PShader shader_depth_color, shader_color_depth;
-PImage rgbImg, depthImg;
+PShader shader_thresh, shader_thresh2;
 
 PVector shaderMousePos = new PVector(0,0);
 PVector shaderMouseClick = new PVector(0,0);
 
 void setupShaders() {
-  shader_depth_color = loadShader("depth_color.glsl"); 
-  shader_color_depth = loadShader("color_depth.glsl"); 
+  shader_thresh = loadShader("thresh.glsl"); 
+  shader_thresh2 = loadShader("thresh2.glsl"); 
   
-  shaderSetSize(shader_depth_color, 640, 480);
-  shaderSetSize(shader_color_depth, 640, 480);
+  shaderSetSize(shader_thresh, depthW, depthH);
+  shaderSetSize(shader_thresh2, depthW, depthH);
+  shaderSetVar(shader_thresh, "threshold", 30);
+  shaderSetVar(shader_thresh2, "threshold", 1);
 }
 
 void updateShaders() {
   //shaderSetMouse(shader);
   //shaderSetTime(shader);
-  shaderSetTexture(shader_depth_color, "tex0", depthImg);
-  shaderSetTexture(shader_color_depth, "tex0", rgbImg);
+  shaderSetTexture(shader_thresh, "tex0", imgL);
 }
 
 //void drawShaders() {
