@@ -1,3 +1,3 @@
 # LeapToStereo
 Generate depth map from Leap Motion stereo cameras.<br>
-Node that Leap Java libraries can work with SDK v2 ( https://developer.leapmotion.com/sdk/v2 ) and v3 ( https://developer.leapmotion.com/releases ), but not v4.
+Node that Leap Java libraries can work with <a href="https://developer.leapmotion.com/sdk/v2">Leap SDK v2</a> on Win/Mac/Linux, and <a href="https://developer.leapmotion.com/releases">Leap SDK v3</a> on Windows only, but not v4 on any platform.
