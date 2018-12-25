@@ -7,16 +7,15 @@ import de.voidplus.leapmotion.*;
 
 OpenCV ocvL, ocvR;
 LeapMotion leap;
-PGraphics imgL, imgR; 
-PImage depth;
+PImage imgL, imgR, depth;
 
 boolean doGrayscale = false;
-boolean doInvert = false;
+boolean doInvert = true;
 boolean doBlur = false;
+boolean doThreshold = true;
 boolean doStereoBM = false;
 int blurType = 3; // 1 simple, 2 gaussian, 3 median, 4 bilateral
 int blurParam = 33; // radius, should be odd
-int depthScale = 1;
 
 StereoSGBM stereoSGBM;
 StereoBM stereoBM;
@@ -26,13 +25,12 @@ int depthH = 240;
 
 void setup() {
   size(50, 50, P2D);
-  surface.setSize(depthW*2, depthH*4);
-  frameRate(120);
+  surface.setSize(depthW, depthH*4);
   
   leap = new LeapMotion(this);    
-  imgL = createGraphics(int(depthW/depthScale), int(depthH/depthScale), P2D);
-  imgR = createGraphics(int(depthW/depthScale), int(depthH/depthScale), P2D);
-  depth = createImage(int(depthW/depthScale), int(depthH/depthScale), RGB);
+  imgL = createImage(depthW, depthH, RGB);
+  imgR = createImage(depthW, depthH, RGB);
+  depth = createImage(depthW, depthH, RGB);
   
   ocvL = new OpenCV(this, imgL);
   ocvR = new OpenCV(this, imgR);
@@ -45,16 +43,13 @@ void draw() {
   if (leap.hasImages()) {
     for (Image camera : leap.getImages()) {
       if (camera.isLeft()) {
-        imgL.beginDraw();
-        imgL.image(camera, 0, 0, imgL.width, imgL.height);
-        imgL.endDraw();
+        imgL = camera;
         ocvL.loadImage(imgL); // Left camera
         if (doGrayscale) ocvL.gray();
+        if (doThreshold) ocvL.threshold(127);
         if (doBlur) ocvL.blur(blurType, blurParam);
       } else {
-        imgR.beginDraw();
-        imgR.image(camera, 0, 0, imgR.width, imgR.height);
-        imgR.endDraw();
+        imgR = camera;
         ocvR.loadImage(imgR); // Right camera
         if (doGrayscale) ocvR.gray();
         if (doBlur) ocvR.blur(blurType, blurParam);
@@ -76,8 +71,9 @@ void draw() {
   
   ocvL.toPImage(depthMat, depth);
   if (doInvert) ocvL.invert();
-  image(imgL, 0, 0, width, height/2);
-  image(depth, 0, height/2, width, height);
+  image(imgL, 0, 0, imgL.width, imgL.height*2);
+  image(depth, 0, height/2, depth.width, depth.height*2);
+  if (doThreshold) filter(THRESHOLD, 0.1);
   
   surface.setTitle("" + frameRate);
 }
