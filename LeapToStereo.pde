@@ -10,9 +10,9 @@ LeapMotion leap;
 PImage imgL, imgR, depth;
 
 boolean doGrayscale = false;
-boolean doInvert = true;
+boolean doInvert = false;
 boolean doBlur = false;
-boolean doThreshold = true;
+boolean doThreshold = false;
 boolean doStereoBM = false;
 int blurType = 3; // 1 simple, 2 gaussian, 3 median, 4 bilateral
 int blurParam = 33; // radius, should be odd
