@@ -1,4 +1,4 @@
-PShader shader_thresh, shader_thresh2;
+PShader shader_thresh, shader_thresh2, shader_blur;
 
 PVector shaderMousePos = new PVector(0,0);
 PVector shaderMouseClick = new PVector(0,0);
@@ -6,17 +6,21 @@ PVector shaderMouseClick = new PVector(0,0);
 void setupShaders() {
   shader_thresh = loadShader("thresh.glsl"); 
   shader_thresh2 = loadShader("thresh2.glsl"); 
+  shader_blur = loadShader("blur.glsl"); 
   
-  shaderSetSize(shader_thresh, depthW, depthH);
-  shaderSetSize(shader_thresh2, depthW, depthH);
-  shaderSetVar(shader_thresh, "threshold", 30);
+  shaderSetSize(shader_thresh, depthW/depthScale, depthH/depthScale);
+  shaderSetSize(shader_thresh2, depthW/depthScale, depthH/depthScale);
+  
+  shaderSetVar(shader_thresh, "threshold", 60);
   shaderSetVar(shader_thresh2, "threshold", 1);
+  shader_blur.set("blurSize", 9);
+  shader_blur.set("sigma", 5.0); 
 }
 
 void updateShaders() {
   //shaderSetMouse(shader);
   //shaderSetTime(shader);
-  shaderSetTexture(shader_thresh, "tex0", imgL);
+  shaderSetTexture(shader_thresh, "tex0", pgL);
 }
 
 //void drawShaders() {
