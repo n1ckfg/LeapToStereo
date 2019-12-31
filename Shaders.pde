@@ -9,21 +9,22 @@ void setupShaders() {
   shader_blur = loadShader("blur.glsl"); 
   shader_yuv = loadShader("yuv_to_gray.glsl"); 
 
-  shaderSetSize(shader_thresh, depthW/depthScale, depthH/depthScale);
-  shaderSetSize(shader_thresh2, depthW/depthScale, depthH/depthScale);
-  shaderSetSize(shader_yuv, depthW/depthScale, depthH/depthScale);
+  shaderSetSize(shader_yuv, depthW, depthH);
+  shaderSetSize(shader_thresh, depthW, depthH);
+  shaderSetSize(shader_thresh2, depthW, depthH);
 
   shaderSetVar(shader_thresh, "threshold", 60);
   shaderSetVar(shader_thresh2, "threshold", 1);
   shader_blur.set("blurSize", 9);
   shader_blur.set("sigma", 5.0); 
-  shader_yuv.set("threshold", 0.15);
+  shader_yuv.set("threshold", 0.5);
 }
 
 void updateShaders() {
   //shaderSetMouse(shader);
   //shaderSetTime(shader);
-  shaderSetTexture(shader_thresh, "tex0", pgL);
+  shaderSetTexture(shader_yuv, "tex0", cam);
+  //shaderSetTexture(shader_thresh, "tex0", pgL);
 }
 
 //void drawShaders() {

@@ -1,9 +1,10 @@
 import processing.video.*;
 
 Capture cam;
-String camString = "name=Leap Motion,size=800x800,fps=24";
-//String camString = "name=HD Pro Webcam C920,size=640x360,fps=30";
-boolean printCameraList = true;
+//String camString = "name=Leap Motion,size=800x800,fps=24";
+String camString = "name=Leap Motion,size=400x400,fps=85";
+boolean printCameraList = false;
+PGraphics tex;
 
 void setupCam() {
   if (printCameraList) {
@@ -28,6 +29,7 @@ void setupCam() {
   int[] wh = getCamWidthHeight(camString);
   depthW = wh[0];
   depthH = wh[1];
+  tex = createGraphics(depthW, depthH, P2D);
   setupShaders();
   cam.start();    
 }
@@ -42,7 +44,9 @@ void updateCam() {
   // without any additional resizing, transformations, or tint.
   //set(0, 0, cam);
   
-  filter(shader_yuv);
+  tex.beginDraw();
+  tex.filter(shader_yuv);
+  tex.endDraw();
 }
 
 int[] getCamWidthHeight(String s) {

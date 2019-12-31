@@ -6,28 +6,25 @@ import org.opencv.calib3d.StereoSGBM;
 import processing.video.*;
 
 OpenCV ocvL, ocvR;
-PGraphics pgL, pgR, pgD;
-PImage depth, camL;
+PGraphics pgL, pgR;
+PImage depth, texL;
 
 boolean doStereoBM = false;
-boolean maskInput = true;
-boolean maskOutput = true;
 
 StereoSGBM stereoSGBM; // semi-global block matching
 StereoBM stereoBM; // block matching
 Mat left, right, disparity, depthMat;
-int depthW = 640;
-int depthH = 240;
-int depthScale = 2;
+int depthW = 50;
+int depthH = 50;
+int depthScale = 1;
 
 void setup() {
   size(50, 50, P2D);
   setupCam();
      
-  pgL = createGraphics(depthW/depthScale, depthH/depthScale, P2D);
-  pgR = createGraphics(depthW/depthScale, depthH/depthScale, P2D);
-  pgD = createGraphics(depthW/depthScale, depthH/depthScale, P2D);
-  depth = createImage(depthW/depthScale, depthH/depthScale, RGB);
+  pgL = createGraphics(depthW, depthH, P2D);
+  pgR = createGraphics(depthW, depthH, P2D);
+  depth = createImage(depthW, depthH, RGB);
   
   setupShaders();
 
@@ -48,8 +45,9 @@ void setup() {
   11. boolean mode : true enables MODE_HH (high quality), false is MODE_SGBM (low quality).
   */
   //stereoSGBM =  new StereoSGBM(0, 32, 3, 100, 1000, 1, 0, 5, 50, 2, false); // OpenCV doc recs
-  stereoSGBM =  new StereoSGBM(0, 32, 3, 100, 1000, 1, 0, 5, 400, 200, false); // OpenCV doc example
+  //stereoSGBM =  new StereoSGBM(0, 32, 3, 100, 1000, 1, 0, 5, 400, 200, false); // OpenCV doc example
   //stereoSGBM =  new StereoSGBM(0, 32, 3, 128, 256, 20, 16, 1, 100, 20, true); // Processing example
+  stereoSGBM =  new StereoSGBM(0, 32, 3, 100, 1000, -1, 32, 15, 200, 100, true); // testing
   
   stereoBM = new StereoBM();
 }
@@ -58,26 +56,14 @@ void draw() {
   updateCam();
 
   pgL.beginDraw();
-  if (maskInput) {
-    shaderSetTexture(shader_thresh, "tex0", cam);
-    pgL.filter(shader_thresh);
-  } else {
-    pgL.image(cam, 0, 0, pgL.width, pgL.height);
-  }
-  pgL.filter(shader_blur);
+  pgL.image(tex.get(0,0,tex.width/2, tex.height), 0, 0, pgL.width, pgL.height);
   pgL.endDraw();
-  ocvL.loadImage(pgL); // Left camera
+  ocvL.loadImage(pgL); // Left tex
 
   pgR.beginDraw();
-  if (maskInput) {
-    shaderSetTexture(shader_thresh, "tex0", cam);
-    pgR.filter(shader_thresh);
-  } else {
-    pgR.image(cam, 0, 0, pgR.width, pgR.height);
-  }
-  pgR.filter(shader_blur);
+  pgR.image(tex.get(tex.width/2,0,tex.width/2, tex.height), 0, 0, pgR.width, pgR.height);
   pgR.endDraw();
-  ocvR.loadImage(pgR); // Right camera
+  ocvR.loadImage(pgR); // Right tex
 
   left = ocvL.getGray();
   right = ocvR.getGray();
@@ -93,18 +79,8 @@ void draw() {
   disparity.convertTo(depthMat, depthMat.type());
   
   ocvL.toPImage(depthMat, depth);
-  image(cam, 0, 0, cam.width, cam.height*2);
   
-  if (maskOutput) {
-    pgD.beginDraw();
-    shaderSetTexture(shader_thresh2, "tex0", depth);
-    shaderSetTexture(shader_thresh2, "tex1", pgL);
-    pgD.filter(shader_thresh2);
-    pgD.endDraw();    
-    image(pgD, 0, height/2, pgD.width * depthScale, pgD.height*2*depthScale);
-  } else {
-    image(depth, 0, height/2, pgD.width * depthScale, pgD.height*2*depthScale);
-  }
+  image(depth, 0, 0, width, height);
   
   surface.setTitle("" + frameRate);
 }
