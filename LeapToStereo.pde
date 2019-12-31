@@ -3,10 +3,9 @@ import org.opencv.core.Mat;
 import org.opencv.calib3d.StereoBM;
 import org.opencv.core.CvType;
 import org.opencv.calib3d.StereoSGBM;
-import de.voidplus.leapmotion.*;
+import processing.video.*;
 
 OpenCV ocvL, ocvR;
-LeapMotion leap;
 PGraphics pgL, pgR, pgD;
 PImage depth, camL;
 
@@ -23,14 +22,12 @@ int depthScale = 2;
 
 void setup() {
   size(50, 50, P2D);
-  surface.setSize(depthW, depthH*4);
-
-  leap = new LeapMotion(this);    
+  setupCam();
+     
   pgL = createGraphics(depthW/depthScale, depthH/depthScale, P2D);
   pgR = createGraphics(depthW/depthScale, depthH/depthScale, P2D);
   pgD = createGraphics(depthW/depthScale, depthH/depthScale, P2D);
   depth = createImage(depthW/depthScale, depthH/depthScale, RGB);
-  camL = createImage(depthW, depthH, RGB);
   
   setupShaders();
 
@@ -58,34 +55,30 @@ void setup() {
 }
 
 void draw() {
-  if (leap.hasImages()) {
-    for (Image camera : leap.getImages()) {
-      if (camera.isLeft()) {
-        camL = camera;
-        pgL.beginDraw();
-        if (maskInput) {
-          shaderSetTexture(shader_thresh, "tex0", camera);
-          pgL.filter(shader_thresh);
-        } else {
-          pgL.image(camera, 0, 0, pgL.width, pgL.height);
-        }
-        pgL.filter(shader_blur);
-        pgL.endDraw();
-        ocvL.loadImage(pgL); // Left camera
-      } else {
-        pgR.beginDraw();
-        if (maskInput) {
-          shaderSetTexture(shader_thresh, "tex0", camera);
-          pgR.filter(shader_thresh);
-        } else {
-          pgR.image(camera, 0, 0, pgR.width, pgR.height);
-        }
-        pgR.filter(shader_blur);
-        pgR.endDraw();
-        ocvR.loadImage(pgR); // Right camera
-      }
-    }
+  updateCam();
+
+  pgL.beginDraw();
+  if (maskInput) {
+    shaderSetTexture(shader_thresh, "tex0", cam);
+    pgL.filter(shader_thresh);
+  } else {
+    pgL.image(cam, 0, 0, pgL.width, pgL.height);
   }
+  pgL.filter(shader_blur);
+  pgL.endDraw();
+  ocvL.loadImage(pgL); // Left camera
+
+  pgR.beginDraw();
+  if (maskInput) {
+    shaderSetTexture(shader_thresh, "tex0", cam);
+    pgR.filter(shader_thresh);
+  } else {
+    pgR.image(cam, 0, 0, pgR.width, pgR.height);
+  }
+  pgR.filter(shader_blur);
+  pgR.endDraw();
+  ocvR.loadImage(pgR); // Right camera
+
   left = ocvL.getGray();
   right = ocvR.getGray();
   disparity = OpenCV.imitate(left);
@@ -100,7 +93,7 @@ void draw() {
   disparity.convertTo(depthMat, depthMat.type());
   
   ocvL.toPImage(depthMat, depth);
-  image(camL, 0, 0, camL.width, camL.height*2);
+  image(cam, 0, 0, cam.width, cam.height*2);
   
   if (maskOutput) {
     pgD.beginDraw();
