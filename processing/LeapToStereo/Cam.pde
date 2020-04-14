@@ -45,7 +45,8 @@ void updateCam() {
   //set(0, 0, cam);
   
   tex.beginDraw();
-  tex.filter(shader_yuv);
+  //tex.filter(shader_yuv);
+  tex.image(cam, 0, 0);
   tex.endDraw();
 }
 
