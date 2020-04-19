@@ -1,0 +1,3 @@
+void keyPressed() {
+  doStereoBM = !doStereoBM;
+}
