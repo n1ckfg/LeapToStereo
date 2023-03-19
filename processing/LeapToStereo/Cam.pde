@@ -1,34 +1,41 @@
 import processing.video.*;
 
-Capture cam;
-//String camString = "name=Leap Motion,size=800x800,fps=24";
-String camString = "name=Leap Motion,size=400x400,fps=85";
-boolean printCameraList = false;
-PGraphics tex;
+/*
+Leap Motion known values
+800x800 @ 24fps
+400x400 @ 85fps
+*/
 
+Capture cam;
+String camString = "Leap Dev Kit";
+String[] cameras;
+PGraphics tex;
+int depthW = 400;
+int depthH = 400;
+int depthFps = 85;
+  
 void setupCam() {
-  if (printCameraList) {
-    String[] cameras = Capture.list();
-    
-    if (cameras.length == 0) {
-      println("There are no cameras available for capture.");
-      exit();
-    } else {
-      if (printCameraList) {
-        println("Available cameras:");
-        for (int i = 0; i < cameras.length; i++) {
-          println(i + ". " + cameras[i]);
-        }
-      }
-    }
+  cameras = Capture.list();
+
+  if (cameras == null) {
+    println("Failed to retrieve the list of available cameras, will try the default...");
+    cam = new Capture(this, 640, 480);
+  } else if (cameras.length == 0) {
+    println("There are no cameras available for capture.");
+    exit();
+  } else {
+    println("Available cameras:");
+    printArray(cameras);
+
+    // The camera can be initialized directly using an element
+    // from the array returned by list():
+    //cam = new Capture(this, cameras[0]);
+
+    // Or, the camera name can be retrieved from the list (you need
+    // to enter valid a width, height, and frame rate for the camera).
+    cam = new Capture(this, depthW, depthH, camString, depthFps);
   }
-    
-  // The camera can be initialized directly using an 
-  // element from the array returned by list():
-  cam = new Capture(this, camString);
-  int[] wh = getCamWidthHeight(camString);
-  depthW = wh[0];
-  depthH = wh[1];
+
   tex = createGraphics(depthW, depthH, P2D);
   setupShaders();
   cam.start();    
@@ -48,21 +55,4 @@ void updateCam() {
   //tex.filter(shader_yuv);
   tex.image(cam, 0, 0);
   tex.endDraw();
-}
-
-int[] getCamWidthHeight(String s) {
-  int w = 0;
-  int h = 0;
-  
-  String s2 = s.split("size=")[1];
-  String[] s3 = s2.split("x");
-  w = parseInt(s3[0]);
-  String s4 = s3[1].split(",")[0];
-  h = parseInt(s4);
-
-  println("parsed width and height: " + w + ", " + h);
-  surface.setSize(w, h);
-
-  int[] returns = { w, h };
-  return returns;
 }

@@ -14,9 +14,6 @@ boolean doStereoBM = false;
 StereoSGBM stereoSGBM; // semi-global block matching
 StereoBM stereoBM; // block matching
 Mat left, right, disparity, depthMat;
-int depthW = 50;
-int depthH = 50;
-int depthScale = 1;
 
 void setup() {
   size(50, 50, P2D);
@@ -44,12 +41,12 @@ void setup() {
   10. int speckleRange : normally 1 or 2.
   11. boolean mode : true enables MODE_HH (high quality), false is MODE_SGBM (low quality).
   */
-  //stereoSGBM =  new StereoSGBM(0, 32, 3, 100, 1000, 1, 0, 5, 50, 2, false); // OpenCV doc recs
-  //stereoSGBM =  new StereoSGBM(0, 32, 3, 100, 1000, 1, 0, 5, 400, 200, false); // OpenCV doc example
-  //stereoSGBM =  new StereoSGBM(0, 32, 3, 128, 256, 20, 16, 1, 100, 20, true); // Processing example
-  stereoSGBM =  new StereoSGBM(0, 32, 3, 100, 1000, -1, 32, 15, 200, 100, true); // testing
+  //stereoSGBM = StereoSGBM.create(0, 32, 3, 100, 1000, 1, 0, 5, 50, 2, 0); // OpenCV doc recs
+  //stereoSGBM = StereoSGBM.create(0, 32, 3, 100, 1000, 1, 0, 5, 400, 200, 0); // OpenCV doc example
+  //stereoSGBM = StereoSGBM.create(0, 32, 3, 128, 256, 20, 16, 1, 100, 20, 1); // Processing example
+  stereoSGBM =  StereoSGBM.create(0, 32, 3, 100, 1000, -1, 32, 15, 200, 100, 1); // testing
   
-  stereoBM = new StereoBM();
+  stereoBM = StereoBM.create();
 }
 
 void draw() {
