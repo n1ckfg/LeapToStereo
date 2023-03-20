@@ -10,14 +10,15 @@ PGraphics pgL, pgR;
 PImage depth, texL;
 
 boolean doStereoBM = false;
+boolean showOrig = false;
 
 StereoSGBM stereoSGBM; // semi-global block matching
 StereoBM stereoBM; // block matching
 Mat left, right, disparity, depthMat;
 
 void setup() {
-  size(50, 50, P2D);
-  setupCam();
+  size(640, 640, P2D);
+  setupLeap();
      
   pgL = createGraphics(depthW, depthH, P2D);
   pgR = createGraphics(depthW, depthH, P2D);
@@ -41,24 +42,24 @@ void setup() {
   10. int speckleRange : normally 1 or 2.
   11. boolean mode : true enables MODE_HH (high quality), false is MODE_SGBM (low quality).
   */
-  //stereoSGBM = StereoSGBM.create(0, 32, 3, 100, 1000, 1, 0, 5, 50, 2, 0); // OpenCV doc recs
+  stereoSGBM = StereoSGBM.create(0, 32, 3, 100, 1000, 1, 0, 5, 50, 2, 0); // OpenCV doc recs
   //stereoSGBM = StereoSGBM.create(0, 32, 3, 100, 1000, 1, 0, 5, 400, 200, 0); // OpenCV doc example
   //stereoSGBM = StereoSGBM.create(0, 32, 3, 128, 256, 20, 16, 1, 100, 20, 1); // Processing example
-  stereoSGBM =  StereoSGBM.create(0, 32, 3, 100, 1000, -1, 32, 15, 200, 100, 1); // testing
+  //stereoSGBM =  StereoSGBM.create(0, 32, 3, 100, 1000, -1, 32, 15, 200, 100, 1); // testing
   
   stereoBM = StereoBM.create();
 }
 
 void draw() {
-  updateCam();
+  updateLeap();
 
   pgL.beginDraw();
-  pgL.image(tex.get(0,0,tex.width/2, tex.height), 0, 0, pgL.width, pgL.height);
+  pgL.image(tex.get(0,0,tex.width, tex.height/2), 0, 0, pgL.width, pgL.height);
   pgL.endDraw();
   ocvL.loadImage(pgL); // Left tex
 
   pgR.beginDraw();
-  pgR.image(tex.get(tex.width/2,0,tex.width/2, tex.height), 0, 0, pgR.width, pgR.height);
+  pgR.image(tex.get(0,tex.height/2,tex.width, tex.height/2), 0, 0, pgR.width, pgR.height);
   pgR.endDraw();
   ocvR.loadImage(pgR); // Right tex
 
@@ -77,7 +78,11 @@ void draw() {
   
   ocvL.toPImage(depthMat, depth);
   
-  image(depth, 0, 0, width, height);
+  if (showOrig) {
+    image(tex, 0, 0, width, height);
+  } else {
+    image(depth, 0, 0, width, height);
+  }
   
   surface.setTitle("" + frameRate);
 }

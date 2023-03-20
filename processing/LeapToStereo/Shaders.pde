@@ -23,7 +23,7 @@ void setupShaders() {
 void updateShaders() {
   //shaderSetMouse(shader);
   //shaderSetTime(shader);
-  shaderSetTexture(shader_yuv, "tex0", cam);
+  shaderSetTexture(shader_yuv, "tex0", tex);
   //shaderSetTexture(shader_thresh, "tex0", pgL);
 }
 
